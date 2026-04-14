@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { BookingService } from "../services/api";
+import { BookingService } from "../services/bookingService";
 import { fmt, formatDate, padId } from "../utils/helpers";
 import Navbar from "../components/Navbar";
 import Receipt from "../components/Receipt";
-import { Badge, MetricCard, EmptyState, Spinner } from "../components/UI";
+import { Badge, MetricCard, EmptyState, Spinner, FeedbackDialog } from "../components/UI";
 
 const TABS = [
   { id: "overview", label: "📊 Overview"       },
@@ -22,23 +22,49 @@ export default function ManagementDashboard() {
   const [loading, setLoading] = useState(true);
   const [receipt, setReceipt] = useState(null);
   const [receiptType, setReceiptType] = useState(null);
+  const [error, setError] = useState("");
+  const [dialog, setDialog] = useState({ open: false, tone: "success", title: "", message: "" });
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [r, t] = await Promise.all([BookingService.getAllRoomBookings(), BookingService.getAllTableBookings()]);
-    setRooms(r);
-    setTables(t);
-    setLoading(false);
+    setError("");
+    try {
+      const [r, t] = await Promise.all([BookingService.getAllRoomBookings(), BookingService.getAllTableBookings()]);
+      setRooms(r);
+      setTables(t);
+    } catch (e) {
+      setError(e.response?.data?.error || e.message || "Unable to load booking data.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
   const updateStatus = async (type, id, status) => {
-    const updated = await BookingService.updateBookingStatus(type, id, status);
-    await load();
-    if (status === "accepted") {
-      setReceipt(updated);
-      setReceiptType(type);
+    setError("");
+    try {
+      const updated = await BookingService.updateBookingStatus(type, id, status);
+      await load();
+      if (status === "accepted") {
+        setReceipt(updated);
+        setReceiptType(type);
+      } else {
+        setDialog({
+          open: true,
+          tone: "success",
+          title: "Booking status updated",
+          message: `The ${type} booking has been marked as ${status}.`,
+        });
+      }
+    } catch (e) {
+      setError(e.response?.data?.error || e.message || "Unable to update booking status.");
+      setDialog({
+        open: true,
+        tone: "error",
+        title: "Status update failed",
+        message: e.response?.data?.error || e.message || "Please try the action again.",
+      });
     }
   };
 
@@ -78,7 +104,19 @@ export default function ManagementDashboard() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
       <Navbar />
+      <FeedbackDialog
+        open={dialog.open}
+        tone={dialog.tone}
+        title={dialog.title}
+        message={dialog.message}
+        onClose={() => setDialog((current) => ({ ...current, open: false }))}
+      />
       {receipt && <Receipt booking={receipt} type={receiptType} onClose={() => setReceipt(null)} />}
+      {error && (
+        <div className="page-container" style={{ paddingBottom: 0 }}>
+          <div className="auth-note error">{error}</div>
+        </div>
+      )}
 
       {/* Tab bar */}
       <div style={{ background: "#fff", borderBottom: "1px solid var(--border)", display: "flex", overflowX: "auto" }}>

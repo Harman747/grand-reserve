@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { BookingService } from "../services/api";
+import { useAuth } from "../context/SupabaseAuthContext";
+import { BookingService } from "../services/bookingService";
 import { ROOM_PRICES, calcRoomPrice, fmt } from "../utils/helpers";
 import Navbar from "../components/Navbar";
 import Receipt from "../components/Receipt";
-import { Field, StepBar, ToggleBtn, BackBtn } from "../components/UI";
+import { Field, StepBar, ToggleBtn, BackBtn, FeedbackDialog } from "../components/UI";
 
 const INIT = {
   name: "", age: "", contact: "", address: "", idProof: "",
@@ -19,6 +19,7 @@ export default function RoomBooking() {
   const [form, setForm]   = useState({ ...INIT, name: user?.name || "" });
   const [receipt, setReceipt] = useState(null);
   const [busy, setBusy]   = useState(false);
+  const [dialog, setDialog] = useState({ open: false, tone: "error", title: "", message: "" });
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const price = calcRoomPrice(form);
@@ -28,15 +29,29 @@ export default function RoomBooking() {
   const handleSubmit = async () => {
     setBusy(true);
     try {
-      const booking = await BookingService.createRoomBooking({ ...form, userId: user.id, price });
+      const booking = await BookingService.createRoomBooking({ ...form, price }, user);
       setReceipt(booking);
-    } catch (e) { alert("Booking failed. Please try again."); }
+    } catch (e) {
+      setDialog({
+        open: true,
+        tone: "error",
+        title: "Room booking could not be submitted",
+        message: e.message || "Please review your details and try again in a moment.",
+      });
+    }
     finally { setBusy(false); }
   };
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
       <Navbar />
+      <FeedbackDialog
+        open={dialog.open}
+        tone={dialog.tone}
+        title={dialog.title}
+        message={dialog.message}
+        onClose={() => setDialog((current) => ({ ...current, open: false }))}
+      />
       {receipt && (
         <Receipt booking={receipt} type="room" onClose={() => navigate("/home")} />
       )}

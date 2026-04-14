@@ -80,3 +80,21 @@ export function EmptyState({ icon = "📭", message }) {
     </div>
   );
 }
+export function FeedbackDialog({ open, tone = "info", title, message, actionLabel = "Close", onClose }) {
+  if (!open) return null;
+
+  return (
+    <div className="dialog-overlay" onClick={onClose}>
+      <div className={`dialog-card ${tone}`} onClick={(e) => e.stopPropagation()}>
+        <div className="dialog-mark">
+          {tone === "success" ? "Success" : tone === "error" ? "Something went wrong" : "Update"}
+        </div>
+        <h3>{title}</h3>
+        <p>{message}</p>
+        <button className="btn btn-primary btn-full" onClick={onClose}>
+          {actionLabel}
+        </button>
+      </div>
+    </div>
+  );
+}

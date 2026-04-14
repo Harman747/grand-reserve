@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { BookingService } from "../services/api";
+import { useAuth } from "../context/SupabaseAuthContext";
+import { BookingService } from "../services/bookingService";
 import { TABLE_PRICES, fmt } from "../utils/helpers";
 import Navbar from "../components/Navbar";
 import Receipt from "../components/Receipt";
-import { Field, ToggleBtn, BackBtn } from "../components/UI";
+import { Field, ToggleBtn, BackBtn, FeedbackDialog } from "../components/UI";
 
 const INIT = { name: "", age: "", contact: "", floor: 1, seats: 4 };
 
@@ -15,6 +15,7 @@ export default function TableBooking() {
   const [form, setForm]   = useState({ ...INIT, name: user?.name || "" });
   const [receipt, setReceipt] = useState(null);
   const [busy, setBusy]   = useState(false);
+  const [dialog, setDialog] = useState({ open: false, tone: "error", title: "", message: "" });
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const price = TABLE_PRICES[form.seats] || 0;
@@ -23,15 +24,29 @@ export default function TableBooking() {
   const handleSubmit = async () => {
     setBusy(true);
     try {
-      const booking = await BookingService.createTableBooking({ ...form, userId: user.id, price });
+      const booking = await BookingService.createTableBooking({ ...form, price }, user);
       setReceipt(booking);
-    } catch { alert("Booking failed. Please try again."); }
+    } catch (e) {
+      setDialog({
+        open: true,
+        tone: "error",
+        title: "Table booking could not be submitted",
+        message: e.message || "Please review the details and try again.",
+      });
+    }
     finally { setBusy(false); }
   };
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
       <Navbar />
+      <FeedbackDialog
+        open={dialog.open}
+        tone={dialog.tone}
+        title={dialog.title}
+        message={dialog.message}
+        onClose={() => setDialog((current) => ({ ...current, open: false }))}
+      />
       {receipt && <Receipt booking={receipt} type="table" onClose={() => navigate("/home")} />}
       <div className="form-container">
         <BackBtn onClick={() => navigate("/home")} label="Back to Home" />

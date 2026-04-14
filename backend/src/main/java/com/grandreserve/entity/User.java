@@ -3,7 +3,7 @@ package com.grandreserve.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "management_users")
 public class User {
 
     @Id

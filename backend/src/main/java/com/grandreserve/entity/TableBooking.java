@@ -1,7 +1,8 @@
 package com.grandreserve.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "table_bookings")
@@ -11,9 +12,14 @@ public class TableBooking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "customer_id", nullable = false)
+    private UUID customerId;
+
+    @Column(name = "customer_email", nullable = false)
+    private String customerEmail;
+
+    @Column(name = "customer_name", nullable = false)
+    private String customerName;
 
     private String  name;
     private Integer age;
@@ -22,35 +28,38 @@ public class TableBooking {
     private Integer seats;
     private Integer price;
 
-    @Enumerated(EnumType.STRING)
-    private BookingStatus status = BookingStatus.PENDING;
+    private String status = "pending";
 
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    public enum BookingStatus { PENDING, ACCEPTED, CANCELLED }
+    @Column(name = "created_at")
+    private OffsetDateTime createdAt = OffsetDateTime.now();
 
     public TableBooking() {}
 
     private TableBooking(Builder b) {
-        this.user      = b.user;
+        this.customerId = b.customerId;
+        this.customerEmail = b.customerEmail;
+        this.customerName = b.customerName;
         this.name      = b.name;
         this.age       = b.age;
         this.contact   = b.contact;
         this.floor     = b.floor;
         this.seats     = b.seats;
         this.price     = b.price;
-        this.status    = BookingStatus.PENDING;
-        this.createdAt = LocalDateTime.now();
+        this.status    = "pending";
+        this.createdAt = OffsetDateTime.now();
     }
 
     public static Builder builder() { return new Builder(); }
 
     public static class Builder {
-        private User user;
+        private UUID customerId;
+        private String customerEmail, customerName;
         private String name, contact;
         private Integer age, floor, seats, price;
 
-        public Builder user(User v)      { this.user = v;     return this; }
+        public Builder customerId(UUID v)      { this.customerId = v; return this; }
+        public Builder customerEmail(String v) { this.customerEmail = v; return this; }
+        public Builder customerName(String v)  { this.customerName = v; return this; }
         public Builder name(String v)    { this.name = v;     return this; }
         public Builder age(Integer v)    { this.age = v;      return this; }
         public Builder contact(String v) { this.contact = v;  return this; }
@@ -62,25 +71,29 @@ public class TableBooking {
 
     // Getters
     public Long          getId()        { return id; }
-    public User          getUser()      { return user; }
+    public UUID          getCustomerId(){ return customerId; }
+    public String        getCustomerEmail(){ return customerEmail; }
+    public String        getCustomerName(){ return customerName; }
     public String        getName()      { return name; }
     public Integer       getAge()       { return age; }
     public String        getContact()   { return contact; }
     public Integer       getFloor()     { return floor; }
     public Integer       getSeats()     { return seats; }
     public Integer       getPrice()     { return price; }
-    public BookingStatus getStatus()    { return status; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public String        getStatus()    { return status; }
+    public OffsetDateTime getCreatedAt() { return createdAt; }
 
     // Setters
     public void setId(Long v)               { this.id = v; }
-    public void setUser(User v)             { this.user = v; }
+    public void setCustomerId(UUID v)       { this.customerId = v; }
+    public void setCustomerEmail(String v)  { this.customerEmail = v; }
+    public void setCustomerName(String v)   { this.customerName = v; }
     public void setName(String v)           { this.name = v; }
     public void setAge(Integer v)           { this.age = v; }
     public void setContact(String v)        { this.contact = v; }
     public void setFloor(Integer v)         { this.floor = v; }
     public void setSeats(Integer v)         { this.seats = v; }
     public void setPrice(Integer v)         { this.price = v; }
-    public void setStatus(BookingStatus v)  { this.status = v; }
-    public void setCreatedAt(LocalDateTime v){ this.createdAt = v; }
+    public void setStatus(String v)         { this.status = v; }
+    public void setCreatedAt(OffsetDateTime v){ this.createdAt = v; }
 }

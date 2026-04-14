@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/SupabaseAuthContext";
 
 const glassCard = {
   background: "rgba(255,255,255,0.06)",

@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import LoginPage           from "./pages/LoginPage";
-import CustomerHome        from "./pages/CustomerHome";
+import { AuthProvider, useAuth } from "./context/SupabaseAuthContext";
+import LoginPage           from "./pages/AuthPortal";
+import CustomerHome        from "./pages/CustomerHub";
 import RoomBooking         from "./pages/RoomBooking";
 import TableBooking        from "./pages/TableBooking";
 import ManagementDashboard from "./pages/ManagementDashboard";

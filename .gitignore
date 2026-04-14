@@ -2,13 +2,14 @@
 node_modules/
 build/
 dist/
-.env
+
 
 # Spring Boot
 target/
 *.log
 *.class
 *.jar
+startup*.log
 
 # IDE
 .vscode/
@@ -17,3 +18,9 @@ target/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local env
+.env
+frontend/.env
+backend/.env
+backend/.mvn/

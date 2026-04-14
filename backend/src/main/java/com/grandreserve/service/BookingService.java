@@ -2,28 +2,24 @@ package com.grandreserve.service;
 
 import com.grandreserve.entity.RoomBooking;
 import com.grandreserve.entity.TableBooking;
-import com.grandreserve.entity.User;
 import com.grandreserve.repository.RoomBookingRepository;
 import com.grandreserve.repository.TableBookingRepository;
-import com.grandreserve.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class BookingService {
 
     private final RoomBookingRepository  roomRepo;
     private final TableBookingRepository tableRepo;
-    private final UserRepository         userRepo;
 
     public BookingService(RoomBookingRepository roomRepo,
-                          TableBookingRepository tableRepo,
-                          UserRepository userRepo) {
+                          TableBookingRepository tableRepo) {
         this.roomRepo  = roomRepo;
         this.tableRepo = tableRepo;
-        this.userRepo  = userRepo;
     }
 
     // ── Price tables ─────────────────────────────────────────
@@ -46,15 +42,15 @@ public class BookingService {
     }
 
     // ── Room Bookings ─────────────────────────────────────────
-    public RoomBooking createRoomBooking(Long userId, String name, Integer age, String contact,
-                                         String address, String idProof, String roomType,
-                                         String bedSize, Integer floor, boolean balcony, boolean pool) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public RoomBooking createRoomBooking(String customerId, String customerEmail, String customerName,
+                                         String name, Integer age, String contact, String address,
+                                         String idProof, String roomType, String bedSize, Integer floor,
+                                         boolean balcony, boolean pool) {
         int price = calcRoomPrice(roomType, bedSize, floor, balcony, pool);
 
         RoomBooking booking = RoomBooking.builder()
-                .user(user).name(name).age(age).contact(contact)
+                .customerId(UUID.fromString(customerId)).customerEmail(customerEmail).customerName(customerName)
+                .name(name).age(age).contact(contact)
                 .address(address).idProof(idProof).roomType(roomType)
                 .bedSize(bedSize).floor(floor).balcony(balcony).pool(pool)
                 .price(price)
@@ -66,14 +62,14 @@ public class BookingService {
         return roomRepo.findAllByOrderByCreatedAtDesc();
     }
 
-    public List<RoomBooking> getRoomBookingsByUser(Long userId) {
-        return roomRepo.findByUserId(userId);
+    public List<RoomBooking> getRoomBookingsByUser(String customerId) {
+        return roomRepo.findByCustomerId(UUID.fromString(customerId));
     }
 
     public RoomBooking updateRoomStatus(Long id, String status) {
         RoomBooking b = roomRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room booking not found"));
-        b.setStatus(RoomBooking.BookingStatus.valueOf(status.toUpperCase()));
+        b.setStatus(status.toLowerCase());
         return roomRepo.save(b);
     }
 
@@ -82,14 +78,14 @@ public class BookingService {
     }
 
     // ── Table Bookings ────────────────────────────────────────
-    public TableBooking createTableBooking(Long userId, String name, Integer age,
-                                           String contact, Integer floor, Integer seats) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public TableBooking createTableBooking(String customerId, String customerEmail, String customerName,
+                                           String name, Integer age, String contact,
+                                           Integer floor, Integer seats) {
         int price = TABLE_PRC.getOrDefault(seats, 0);
 
         TableBooking booking = TableBooking.builder()
-                .user(user).name(name).age(age).contact(contact)
+                .customerId(UUID.fromString(customerId)).customerEmail(customerEmail).customerName(customerName)
+                .name(name).age(age).contact(contact)
                 .floor(floor).seats(seats).price(price)
                 .build();
         return tableRepo.save(booking);
@@ -99,14 +95,14 @@ public class BookingService {
         return tableRepo.findAllByOrderByCreatedAtDesc();
     }
 
-    public List<TableBooking> getTableBookingsByUser(Long userId) {
-        return tableRepo.findByUserId(userId);
+    public List<TableBooking> getTableBookingsByUser(String customerId) {
+        return tableRepo.findByCustomerId(UUID.fromString(customerId));
     }
 
     public TableBooking updateTableStatus(Long id, String status) {
         TableBooking b = tableRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Table booking not found"));
-        b.setStatus(TableBooking.BookingStatus.valueOf(status.toUpperCase()));
+        b.setStatus(status.toLowerCase());
         return tableRepo.save(b);
     }
 
@@ -116,8 +112,8 @@ public class BookingService {
 
     // ── Floor occupancy ───────────────────────────────────────
     public Map<String, Object> getFloorOccupancy(int floor) {
-        long roomsBooked  = roomRepo .findByFloorAndStatus(floor, RoomBooking.BookingStatus.ACCEPTED).size();
-        long tablesBooked = tableRepo.findByFloorAndStatus(floor, TableBooking.BookingStatus.ACCEPTED).size();
+        long roomsBooked  = roomRepo .findByFloorAndStatus(floor, "accepted").size();
+        long tablesBooked = tableRepo.findByFloorAndStatus(floor, "accepted").size();
         return Map.of(
             "floor",        floor,
             "roomsBooked",  roomsBooked,

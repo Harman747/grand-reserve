@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { BookingService } from "../services/api";
+import { useAuth } from "../context/SupabaseAuthContext";
+import { BookingService } from "../services/bookingService";
 import { fmt, formatDate, padId } from "../utils/helpers";
 import Navbar from "../components/Navbar";
 import { Badge, EmptyState, Spinner } from "../components/UI";

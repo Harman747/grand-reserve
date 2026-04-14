@@ -1,4 +1,4 @@
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/SupabaseAuthContext";
 
 export default function Navbar() {
   const { user, logout } = useAuth();

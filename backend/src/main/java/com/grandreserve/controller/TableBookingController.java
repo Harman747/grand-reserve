@@ -25,7 +25,8 @@ public class TableBookingController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> create(@RequestBody TableBookingRequest req) {
         TableBooking b = bookingService.createTableBooking(
-            req.getUserId(), req.getName(), req.getAge(),
+            req.getCustomerId(), req.getCustomerEmail(), req.getCustomerName(),
+            req.getName(), req.getAge(),
             req.getContact(), req.getFloor(), req.getSeats()
         );
         return ResponseEntity.ok(toMap(b));
@@ -33,7 +34,7 @@ public class TableBookingController {
 
     // Customer: own bookings
     @GetMapping("/my/{userId}")
-    public ResponseEntity<List<Map<String, Object>>> myBookings(@PathVariable Long userId) {
+    public ResponseEntity<List<Map<String, Object>>> myBookings(@PathVariable String userId) {
         List<Map<String, Object>> result = bookingService.getTableBookingsByUser(userId)
                 .stream().map(this::toMap).toList();
         return ResponseEntity.ok(result);
@@ -76,15 +77,19 @@ public class TableBookingController {
         m.put("floor",     b.getFloor());
         m.put("seats",     b.getSeats());
         m.put("price",     b.getPrice());
-        m.put("status",    b.getStatus().name().toLowerCase());
-        m.put("userId",    b.getUser() != null ? b.getUser().getId() : null);
+        m.put("status",    b.getStatus());
+        m.put("customerId",    b.getCustomerId() != null ? b.getCustomerId().toString() : null);
+        m.put("customerEmail", b.getCustomerEmail());
+        m.put("customerName",  b.getCustomerName());
         m.put("createdAt", b.getCreatedAt().toString());
         return m;
     }
 
     // ── Inner request class ──────────────────────────────────
     public static class TableBookingRequest {
-        private Long    userId;
+        private String  customerId;
+        private String  customerEmail;
+        private String  customerName;
         private String  name;
         private Integer age;
         private String  contact;
@@ -93,14 +98,18 @@ public class TableBookingController {
 
         public TableBookingRequest() {}
 
-        public Long    getUserId()  { return userId; }
+        public String  getCustomerId()  { return customerId; }
+        public String  getCustomerEmail() { return customerEmail; }
+        public String  getCustomerName() { return customerName; }
         public String  getName()    { return name; }
         public Integer getAge()     { return age; }
         public String  getContact() { return contact; }
         public Integer getFloor()   { return floor; }
         public Integer getSeats()   { return seats; }
 
-        public void setUserId(Long v)    { this.userId = v; }
+        public void setCustomerId(String v)    { this.customerId = v; }
+        public void setCustomerEmail(String v) { this.customerEmail = v; }
+        public void setCustomerName(String v)  { this.customerName = v; }
         public void setName(String v)    { this.name = v; }
         public void setAge(Integer v)    { this.age = v; }
         public void setContact(String v) { this.contact = v; }
