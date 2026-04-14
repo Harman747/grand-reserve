@@ -26,7 +26,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
 
-    @Value("${CORS_ALLOWED_ORIGINS}")
+    @Value("${CORS_ALLOWED_ORIGINS:https://grand-reserve.vercel.app}")
     private String allowedOrigins;
 
     public SecurityConfig(JwtFilter jwtFilter) {
